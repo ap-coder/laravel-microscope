@@ -1,6 +1,31 @@
 <?php
 
 return [
+    
+    /*
+    |--------------------------------------------------------------------------
+    | Microscope Master Switch
+    |--------------------------------------------------------------------------
+    |
+    | This option may be used to disable Microscope until you need to use it. After you change the value in your 
+    | .env file remember to run php artisan config:cache to turn on the artisan commands.
+    |
+    */
+    
+    'enabled' => env('MICROSCOPE_ENABLED', true),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Microscope User Specific Access
+    |--------------------------------------------------------------------------
+    |
+    | This only allows users with specific user ID to see the artisan commands in Microscope. After you change the value in your 
+    | .env file remember to run php artisan config:cache to turn on the artisan commands for those specific user_id.
+    |
+    */
+    
+    'allowed_users' => env('MICROSCOPE_USERS', '1,2'),
+    
     /**
      * Avoids auto-fix if is set to true.
      */
@@ -10,7 +35,7 @@ return [
      * An array of patterns relative to base_path that should be ignored when reporting.
      */
     'ignore' => [
-        // 'nova*'
+        // 'nova*',
     ],
 
     /**
