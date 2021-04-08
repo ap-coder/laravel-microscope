@@ -50,34 +50,40 @@ class LaravelMicroscopeServiceProvider extends ServiceProvider
 
     public function boot()
     {
-        (app()['env'] !== 'production') && config('microscope.log_unused_view_vars', true) && $this->spyView();
-
-        if (! $this->canRun()) {
+        if (! config('microscope.enabled')) {
             return;
+        }else{
+            
+            (app()['env'] !== 'production') && config('microscope.log_unused_view_vars', true) && $this->spyView();
+
+            if (! $this->canRun()) {
+                return;
+            }
+
+            Event::listen('microscope.start.command', function () {
+                ! defined('microscope_start') && define('microscope_start', microtime(true));
+            });
+
+            Event::listen('microscope.finished.checks', function () {
+                CheckViews::$checkedCallsNum = 0;
+                CheckClassReferences::$refCount = 0;
+                Psr4Classes::$checkedFilesNum = 0;
+            });
+
+            $this->commands(self::$commandNames);
+
+            $this->publishes([
+                __DIR__.'/../config/config.php' => config_path('microscope.php'),
+            ], 'config');
+
+            $this->mergeConfigFrom(__DIR__.'/../config/config.php', 'microscope');
+
+            ConsolePrinterInstaller::boot();
+
+            Event::listen('microscope.checking', function ($path, $command) {
+                $command->line('Checking: '.$path);
+            });
         }
-
-        Event::listen('microscope.start.command', function () {
-            ! defined('microscope_start') && define('microscope_start', microtime(true));
-        });
-        Event::listen('microscope.finished.checks', function () {
-            CheckViews::$checkedCallsNum = 0;
-            CheckClassReferences::$refCount = 0;
-            Psr4Classes::$checkedFilesNum = 0;
-        });
-
-        $this->commands(self::$commandNames);
-
-        $this->publishes([
-            __DIR__.'/../config/config.php' => config_path('microscope.php'),
-        ], 'config');
-
-        $this->mergeConfigFrom(__DIR__.'/../config/config.php', 'microscope');
-
-        ConsolePrinterInstaller::boot();
-
-        Event::listen('microscope.checking', function ($path, $command) {
-            $command->line('Checking: '.$path);
-        });
     }
 
     public function register()
